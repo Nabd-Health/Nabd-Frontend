@@ -1,9 +1,44 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Heart } from 'lucide-react';
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const location = useLocation();
+
+    // Helper function to check if a link is active
+    const isActive = (path) => {
+        return location.pathname === path;
+    };
+
+    // Smooth scroll handler for section links
+    const handleSectionClick = (e, sectionId) => {
+        e.preventDefault();
+        
+        // If we're on the landing page, scroll to the section
+        if (location.pathname === '/') {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        } else {
+            // If we're on another page, navigate to landing page with hash
+            window.location.href = `/#${sectionId}`;
+        }
+    };
+
+    // Handle scroll on page load if there's a hash in the URL
+    useEffect(() => {
+        if (location.hash) {
+            const sectionId = location.hash.substring(1);
+            setTimeout(() => {
+                const element = document.getElementById(sectionId);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+        }
+    }, [location]);
 
     return (
         <nav className="fixed w-full bg-white/90 backdrop-blur-md border-b border-[#E7ECEF] z-50">
@@ -35,10 +70,52 @@ const Header = () => {
 
                     {/* Desktop Menu */}
                     <div className="hidden md:flex items-center gap-8 whitespace-nowrap">
-                        <a href="#features" className="text-[#1F2E3C] hover:text-[#1C8B8F] font-medium transition">المميزات</a>
-                        <a href="#ai-section" className="text-[#1F2E3C] hover:text-[#1C8B8F] font-medium transition">الذكاء الاصطناعي</a>
-                        <a href="#doctors" className="text-[#1F2E3C] hover:text-[#1C8B8F] font-medium transition">الأطباء</a>
-                        <a href="#how-it-works" className="text-[#1F2E3C] hover:text-[#1C8B8F] font-medium transition">كيف يعمل</a>
+                        <a 
+                            href="/#features" 
+                            onClick={(e) => handleSectionClick(e, 'features')}
+                            className="text-[#1F2E3C] hover:text-[#1C8B8F] font-medium transition relative pb-1 group cursor-pointer"
+                        >
+                            المميزات
+                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#1C8B8F] scale-x-0 group-hover:scale-x-100 transition-transform origin-right"></span>
+                        </a>
+                        <a 
+                            href="/#ai-section" 
+                            onClick={(e) => handleSectionClick(e, 'ai-section')}
+                            className="text-[#1F2E3C] hover:text-[#1C8B8F] font-medium transition relative pb-1 group cursor-pointer"
+                        >
+                            الذكاء الاصطناعي
+                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#1C8B8F] scale-x-0 group-hover:scale-x-100 transition-transform origin-right"></span>
+                        </a>
+                        <a 
+                            href="/#doctors" 
+                            onClick={(e) => handleSectionClick(e, 'doctors')}
+                            className="text-[#1F2E3C] hover:text-[#1C8B8F] font-medium transition relative pb-1 group cursor-pointer"
+                        >
+                            الأطباء
+                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#1C8B8F] scale-x-0 group-hover:scale-x-100 transition-transform origin-right"></span>
+                        </a>
+                        <a 
+                            href="/#how-it-works" 
+                            onClick={(e) => handleSectionClick(e, 'how-it-works')}
+                            className="text-[#1F2E3C] hover:text-[#1C8B8F] font-medium transition relative pb-1 group cursor-pointer"
+                        >
+                            كيف يعمل
+                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#1C8B8F] scale-x-0 group-hover:scale-x-100 transition-transform origin-right"></span>
+                        </a>
+                        <Link 
+                            to="/contact" 
+                            className={`font-medium transition relative pb-1 ${
+                                isActive('/contact') 
+                                    ? 'text-[#1C8B8F]' 
+                                    : 'text-[#1F2E3C] hover:text-[#1C8B8F]'
+                            }`}
+                        >
+                            اتصل بنا
+                            <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#1C8B8F] transition-transform origin-right ${
+                                isActive('/contact') ? 'scale-x-100' : 'scale-x-0'
+                            }`}></span>
+                        </Link>
+
                     </div>
 
                     {/* Auth Buttons */}
@@ -64,9 +141,20 @@ const Header = () => {
             {isOpen && (
                 <div className="md:hidden bg-white border-t border-[#E7ECEF]">
                     <div className="px-4 pt-2 pb-6 space-y-2">
-                        <a href="#features" className="block px-3 py-2 rounded-md text-base font-medium text-[#1F2E3C] hover:bg-[#E7ECEF]">المميزات</a>
-                        <a href="#ai-section" className="block px-3 py-2 rounded-md text-base font-medium text-[#1F2E3C] hover:bg-[#E7ECEF]">الذكاء الاصطناعي</a>
-                        <a href="#doctors" className="block px-3 py-2 rounded-md text-base font-medium text-[#1F2E3C] hover:bg-[#E7ECEF]">الأطباء</a>
+                        <a href="/#features" onClick={(e) => handleSectionClick(e, 'features')} className="block px-3 py-2 rounded-md text-base font-medium text-[#1F2E3C] hover:bg-[#E7ECEF] cursor-pointer">المميزات</a>
+                        <a href="/#ai-section" onClick={(e) => handleSectionClick(e, 'ai-section')} className="block px-3 py-2 rounded-md text-base font-medium text-[#1F2E3C] hover:bg-[#E7ECEF] cursor-pointer">الذكاء الاصطناعي</a>
+                        <a href="/#doctors" onClick={(e) => handleSectionClick(e, 'doctors')} className="block px-3 py-2 rounded-md text-base font-medium text-[#1F2E3C] hover:bg-[#E7ECEF] cursor-pointer">الأطباء</a>
+                        <Link 
+                            to="/contact" 
+                            className={`block px-3 py-2 rounded-md text-base font-medium ${
+                                isActive('/contact') 
+                                    ? 'bg-[#1C8B8F]/10 text-[#1C8B8F]' 
+                                    : 'text-[#1F2E3C] hover:bg-[#E7ECEF]'
+                            }`}
+                        >
+                            اتصل بنا
+                        </Link>
+
                         <Link to="/login" className="block w-full text-center mt-4 px-5 py-3 rounded-xl border border-[#E7ECEF] text-[#1F2E3C] font-bold">
                             دخول
                         </Link>
