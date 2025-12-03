@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import doctorService from '../../../api/services/doctor.service';
+import { mockReviews, mockStatistics, createMockPaginationResponse } from '../data/mockReviews';
+import { simulateApiDelay } from '../data/mockData';
+
+// ⚠️ TOGGLE MOCK DATA HERE
+const USE_MOCK_DATA = true;
 
 /**
  * Reviews Store - Zustand
@@ -13,7 +18,7 @@ const useReviewsStore = create(
       reviews: [],
       statistics: null,
       selectedReview: null,
-      
+
       // Pagination
       pagination: {
         pageNumber: 1,
@@ -23,7 +28,7 @@ const useReviewsStore = create(
         hasNextPage: false,
         hasPreviousPage: false
       },
-      
+
       // Filters
       filters: {
         minRating: null,
@@ -31,14 +36,14 @@ const useReviewsStore = create(
         sortBy: 'date',
         sortOrder: 'desc'
       },
-      
+
       // Loading states
       loading: {
         reviews: false,
         statistics: false,
         reply: false
       },
-      
+
       // Error states
       error: {
         reviews: null,
@@ -47,13 +52,13 @@ const useReviewsStore = create(
       },
 
       // Actions
-      
+
       /**
        * Fetch reviews with current filters and pagination
        */
       fetchReviews: async () => {
         const { pagination } = get();
-        
+
         set((state) => ({
           loading: { ...state.loading, reviews: true },
           error: { ...state.error, reviews: null }
@@ -61,11 +66,32 @@ const useReviewsStore = create(
 
         try {
           console.log('📥 Fetching reviews:', { pageNumber: pagination.pageNumber, pageSize: pagination.pageSize });
-          
+
+          if (USE_MOCK_DATA) {
+            console.log('⚠️ USING MOCK DATA FOR REVIEWS');
+            await simulateApiDelay();
+
+            const mockResponse = createMockPaginationResponse(mockReviews, pagination.pageNumber, pagination.pageSize);
+
+            set({
+              reviews: mockResponse.reviews,
+              pagination: {
+                pageNumber: mockResponse.pageNumber,
+                pageSize: mockResponse.pageSize,
+                totalCount: mockResponse.totalCount,
+                totalPages: mockResponse.totalPages,
+                hasNextPage: mockResponse.hasNextPage,
+                hasPreviousPage: mockResponse.hasPreviousPage
+              },
+              loading: { ...get().loading, reviews: false }
+            });
+            return;
+          }
+
           const response = await doctorService.getReviews(pagination.pageNumber, pagination.pageSize);
-          
+
           console.log('✅ Reviews fetched:', response);
-          
+
           if (response) {
             set({
               reviews: response.data || [],
@@ -100,11 +126,20 @@ const useReviewsStore = create(
 
         try {
           console.log('📊 Fetching review statistics...');
-          
+
+          if (USE_MOCK_DATA) {
+            await simulateApiDelay();
+            set({
+              statistics: mockStatistics,
+              loading: { ...get().loading, statistics: false }
+            });
+            return;
+          }
+
           const statistics = await doctorService.getReviewStatistics();
-          
+
           console.log('✅ Statistics fetched:', statistics);
-          
+
           set({
             statistics,
             loading: { ...get().loading, statistics: false }
@@ -178,16 +213,28 @@ const useReviewsStore = create(
 
         try {
           console.log('📄 Fetching review details:', reviewId);
-          
+
+          if (USE_MOCK_DATA) {
+            await simulateApiDelay();
+            const review = mockReviews.find(r => r.id === reviewId);
+            if (review) {
+              set({
+                selectedReview: review,
+                loading: { ...get().loading, reply: false }
+              });
+              return { success: true, data: review };
+            }
+          }
+
           const reviewDetails = await doctorService.getReviewDetails(reviewId);
-          
+
           console.log('✅ Review details fetched:', reviewDetails);
-          
+
           set({
             selectedReview: reviewDetails,
             loading: { ...get().loading, reply: false }
           });
-          
+
           return { success: true, data: reviewDetails };
         } catch (error) {
           console.error('❌ Error fetching review details:', error);
@@ -195,7 +242,7 @@ const useReviewsStore = create(
             loading: { ...state.loading, reply: false },
             error: { ...state.error, reply: error.message || 'فشل في جلب تفاصيل التقييم' }
           }));
-          
+
           return { success: false, error: error.message };
         }
       },

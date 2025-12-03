@@ -25,6 +25,7 @@ const PatientsPage = lazy(() => import('@/features/doctor/pages/PatientsPage'));
 const AppointmentsPage = lazy(() => import('@/features/doctor/pages/AppointmentsPage'));
 const ReviewsPage = lazy(() => import('@/features/doctor/pages/ReviewsPage'));
 const SessionModalWrapper = lazy(() => import('@/features/doctor/pages/SessionModalWrapper'));
+const SessionPage = lazy(() => import('@/features/doctor/pages/SessionPage'));
 
 // Patient Pages
 const SearchDoctorsPage = lazy(() => import('@/features/patient/pages/SearchDoctorsPage'));
@@ -147,7 +148,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: 'session/:appointmentId',
+        path: 'session-modal/:appointmentId',
         element: (
           <ProtectedRoute roles={['doctor']}>
             <SuspenseWrapper>
@@ -157,6 +158,16 @@ const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  {
+    path: '/doctor/session/:appointmentId',
+    element: (
+      <ProtectedRoute roles={['doctor']}>
+        <SuspenseWrapper>
+          <SessionPage />
+        </SuspenseWrapper>
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/patient',

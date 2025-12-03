@@ -6,6 +6,10 @@ import {
   FaStar,
   FaDollarSign
 } from 'react-icons/fa';
+import { mockDashboardStats, simulateApiDelay } from '../data/mockData';
+
+// ⚠️ TOGGLE MOCK DATA HERE
+const USE_MOCK_DATA = true;
 
 /**
  * Custom Hook for Doctor Dashboard Statistics
@@ -76,6 +80,15 @@ export const useDashboardStats = () => {
     setError(null);
 
     try {
+      if (USE_MOCK_DATA) {
+        console.log('⚠️ USING MOCK DATA FOR DASHBOARD STATS');
+        await simulateApiDelay();
+        const statsArray = mapStatsToArray(mockDashboardStats);
+        setStats(statsArray);
+        setLoading(false);
+        return;
+      }
+
       const response = await doctorService.getDashboardStats();
 
       if (response.isSuccess && response.data) {

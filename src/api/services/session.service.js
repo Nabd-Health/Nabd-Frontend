@@ -1,4 +1,5 @@
 import apiClient from '../client';
+import { mockAppointments, mockPatients, simulateApiDelay } from '@/features/doctor/data/mockData';
 
 /**
  * Session Service
@@ -7,13 +8,45 @@ import apiClient from '../client';
  */
 class SessionService {
   /**
+   * Helper to check if ID is a mock ID
+   */
+  _isMockId(id) {
+    return typeof id === 'string' && (id.startsWith('apt') || id.startsWith('p'));
+  }
+
+  /**
    * Start a new consultation session
    * @param {string} appointmentId - Appointment ID
    * @returns {Promise<Object>} Session data
-   * 
-   * Note: API returns 200 OK even if session already exists!
    */
   async startSession(appointmentId) {
+    // MOCK DATA HANDLER
+    if (this._isMockId(appointmentId)) {
+      await simulateApiDelay();
+      const appointment = mockAppointments.find(a => a.id === appointmentId);
+      const patient = mockPatients.find(p => p.id === appointment?.patientId);
+
+      if (!appointment) return { success: false, error: 'الموعد غير موجود' };
+
+      return {
+        success: true,
+        data: {
+          id: `session_${appointmentId}`,
+          appointmentId: appointmentId,
+          patientId: appointment.patientId,
+          patientName: appointment.patientName,
+          patientAge: patient?.age || 30,
+          patientProfileImageUrl: patient?.profileImageUrl,
+          patientPhone: appointment.patientPhoneNumber,
+          startTime: new Date().toISOString(),
+          status: 'InProgress',
+          duration: appointment.duration,
+          type: appointment.appointmentType === 'regular' ? 1 : 2
+        },
+        message: 'تم بدء الجلسة بنجاح (تجريبي)'
+      };
+    }
+
     try {
       console.log('🔵 Starting session for appointment:', appointmentId);
       const response = await apiClient.post(`/Appointments/${appointmentId}/start-session`);
@@ -50,6 +83,9 @@ class SessionService {
    * @returns {Promise<Object>} Active session data or null
    */
   async getDoctorActiveSession() {
+    // MOCK DATA: Always return null for simplicity unless we want to simulate an active session state
+    // For now, we assume no global active session in mock mode to allow starting new ones
+
     try {
       console.log('🔵 Checking for doctor active session...');
       const response = await apiClient.get('/Doctors/me/sessions/active');
@@ -115,6 +151,61 @@ class SessionService {
    * @returns {Promise<Object>} Session data or null
    */
   async getActiveSession(appointmentId) {
+    // MOCK DATA HANDLER
+    if (this._isMockId(appointmentId)) {
+      await simulateApiDelay();
+      const appointment = mockAppointments.find(a => a.id === appointmentId);
+      const patient = mockPatients.find(p => p.id === appointment?.patientId);
+
+      if (!appointment) return { success: true, data: null, isActive: false };
+
+      // Simulate active session if status is InProgress (3)
+      if (appointment.status === 3) {
+        return {
+          success: true,
+          data: {
+            id: `session_${appointmentId}`,
+            appointmentId: appointmentId,
+            patientId: appointment.patientId,
+            patientName: appointment.patientName,
+            patientAge: patient?.age || 30,
+            patientProfileImageUrl: patient?.profileImageUrl,
+            patientPhone: appointment.patientPhoneNumber,
+            startTime: new Date().toISOString(), // Just started for mock
+            status: 'InProgress',
+            duration: appointment.duration,
+            type: appointment.appointmentType === 'regular' ? 1 : 2
+          },
+          isActive: true,
+          isCompleted: false
+        };
+      }
+
+      // Simulate completed session if status is Completed (4)
+      if (appointment.status === 4) {
+        return {
+          success: true,
+          data: {
+            id: `session_${appointmentId}`,
+            appointmentId: appointmentId,
+            patientId: appointment.patientId,
+            patientName: appointment.patientName,
+            patientAge: patient?.age || 30,
+            patientProfileImageUrl: patient?.profileImageUrl,
+            patientPhone: appointment.patientPhoneNumber,
+            startTime: appointment.appointmentDate, // Past date
+            status: 'Completed',
+            duration: appointment.duration,
+            type: appointment.appointmentType === 'regular' ? 1 : 2
+          },
+          isActive: false,
+          isCompleted: true
+        };
+      }
+
+      return { success: true, data: null, isActive: false };
+    }
+
     try {
       const response = await apiClient.get(`/Appointments/${appointmentId}/session`);
 
@@ -164,6 +255,16 @@ class SessionService {
    * @returns {Promise<Object>} Success response
    */
   async endSession(appointmentId) {
+    // MOCK DATA HANDLER
+    if (this._isMockId(appointmentId)) {
+      await simulateApiDelay();
+      return {
+        success: true,
+        data: { id: `session_${appointmentId}`, status: 'Completed' },
+        message: 'تم إنهاء الجلسة بنجاح (تجريبي)'
+      };
+    }
+
     try {
       console.log('🔴 Ending session for appointment:', appointmentId);
       const response = await apiClient.post(`/Appointments/${appointmentId}/end-session`);
@@ -198,6 +299,22 @@ class SessionService {
    * @returns {Promise<Object>} Documentation data
    */
   async getSessionDocumentation(appointmentId) {
+    // MOCK DATA HANDLER
+    if (this._isMockId(appointmentId)) {
+      await simulateApiDelay();
+      return {
+        success: true,
+        data: {
+          chiefComplaint: 'شكوى رئيسية تجريبية',
+          historyOfPresentIllness: 'تاريخ المرض الحالي تجريبي',
+          physicalExamination: 'فحص بدني تجريبي',
+          diagnosis: 'تشخيص تجريبي',
+          treatmentPlan: 'خطة علاج تجريبية',
+          notes: 'ملاحظات إضافية تجريبية'
+        }
+      };
+    }
+
     try {
       const response = await apiClient.get(`/Appointments/${appointmentId}/documentation`);
       return {
@@ -221,6 +338,16 @@ class SessionService {
    * @returns {Promise<Object>} Created/Updated documentation
    */
   async addSessionDocumentation(appointmentId, documentationData, isUpdate = false) {
+    // MOCK DATA HANDLER
+    if (this._isMockId(appointmentId)) {
+      await simulateApiDelay();
+      return {
+        success: true,
+        data: documentationData,
+        message: 'تم حفظ التوثيق بنجاح (تجريبي)'
+      };
+    }
+
     try {
       console.log(`📝 ${isUpdate ? 'Updating' : 'Creating'} documentation for appointment:`, appointmentId);
       console.log('📝 Documentation data:', documentationData);
@@ -258,13 +385,22 @@ class SessionService {
    * Create prescription for session
    * POST /Prescriptions
    * @param {Object} prescriptionData - Prescription data
-   * @param {string} prescriptionData.appointmentId - Appointment ID
-   * @param {string} prescriptionData.doctorId - Doctor ID
-   * @param {string} prescriptionData.patientId - Patient ID
-   * @param {Array} prescriptionData.medications - Array of medications
    * @returns {Promise<Object>} Created prescription
    */
   async createPrescription(prescriptionData) {
+    // MOCK DATA HANDLER
+    if (this._isMockId(prescriptionData.appointmentId)) {
+      await simulateApiDelay();
+      return {
+        success: true,
+        data: {
+          id: `rx_${Date.now()}`,
+          ...prescriptionData
+        },
+        message: 'تم حفظ الروشتة بنجاح (تجريبي)'
+      };
+    }
+
     try {
       console.log('💊 Creating prescription:', prescriptionData);
 
@@ -348,6 +484,24 @@ class SessionService {
    * @returns {Promise<Object>} Medical record data
    */
   async getPatientMedicalRecord(patientId) {
+    // MOCK DATA HANDLER
+    if (this._isMockId(patientId)) {
+      await simulateApiDelay();
+      const patient = mockPatients.find(p => p.id === patientId);
+      return {
+        success: true,
+        data: {
+          patientId: patientId,
+          patientFullName: patient?.fullName || 'مريض تجريبي',
+          lastUpdatedAt: new Date().toISOString(),
+          drugAllergies: [],
+          chronicDiseases: patient?.chronicDiseases?.map((d, i) => ({ id: i, diseaseName: d, createdAt: new Date().toISOString() })) || [],
+          currentMedications: [],
+          previousSurgeries: [],
+        }
+      };
+    }
+
     try {
       const response = await apiClient.get(`/Doctors/me/patients/${patientId}/medical-record`);
 
@@ -358,10 +512,6 @@ class SessionService {
       // Check if data has medicalHistory array (new API structure)
       if (rawData.medicalHistory && Array.isArray(rawData.medicalHistory)) {
         console.log('🔄 [Session] Converting medicalHistory array to structured format');
-        console.log('🔍 [Session] medicalHistory array:', rawData.medicalHistory);
-        console.log('🔍 [Session] medicalHistory length:', rawData.medicalHistory.length);
-        console.log('🔍 [Session] First item:', rawData.medicalHistory[0]);
-        console.log('🔍 [Session] First item keys:', Object.keys(rawData.medicalHistory[0] || {}));
 
         // Transform medicalHistory array to structured format
         const transformedData = {
@@ -432,6 +582,44 @@ class SessionService {
       return {
         success: false,
         error: this._extractError(error),
+      };
+    }
+  }
+
+  /**
+   * Request lab test
+   * @param {string} appointmentId - Appointment ID
+   * @param {Object} labTestData - Lab test data
+   * @returns {Promise<Object>} Created lab test
+   */
+  async requestLabTest(appointmentId, labTestData) {
+    // MOCK DATA HANDLER
+    if (this._isMockId(appointmentId)) {
+      await simulateApiDelay();
+      return {
+        success: true,
+        data: {
+          id: `lab_${Date.now()}`,
+          appointmentId,
+          ...labTestData,
+          status: 'Requested',
+          requestedAt: new Date().toISOString()
+        },
+        message: 'تم طلب التحليل بنجاح (تجريبي)'
+      };
+    }
+
+    try {
+      const response = await apiClient.post(`/Appointments/${appointmentId}/lab-tests`, labTestData);
+      return {
+        success: true,
+        data: response.data?.data || response.data,
+        message: response.data?.message
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: this._extractError(error)
       };
     }
   }

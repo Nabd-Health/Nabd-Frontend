@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import doctorService from '@/api/services/doctor.service';
+import { mockAppointments, mockStatistics, simulateApiDelay } from '../data/mockData';
+
+// ⚠️ TOGGLE MOCK DATA HERE
+const USE_MOCK_DATA = true;
 
 /**
  * Custom Hook for ALL Appointments (Past, Today, Future)
@@ -28,28 +32,55 @@ export const useAllAppointments = () => {
     console.log('🚀 useAllAppointments: fetchAppointments called');
     console.log('✅ Using /Doctors/me/appointments endpoint (NEW)');
     console.log('📄 Page:', pageNumber, '| Size:', pageSize);
-    
+
     setLoading(true);
     setError(null);
 
     try {
-      const response = await doctorService.getAllAppointments({ 
-        pageNumber, 
+      if (USE_MOCK_DATA) {
+        console.log('⚠️ USING MOCK DATA FOR ALL APPOINTMENTS');
+        await simulateApiDelay();
+
+        // Mock pagination
+        const totalCount = mockAppointments.length;
+        const totalPages = Math.ceil(totalCount / pageSize);
+        const startIndex = (pageNumber - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedAppointments = mockAppointments.slice(startIndex, endIndex);
+
+        const mappedAppointments = paginatedAppointments.map(mapAppointment);
+
+        setAppointments(mappedAppointments);
+        setStatistics(mockStatistics);
+        setPagination({
+          pageNumber,
+          pageSize,
+          totalCount,
+          totalPages,
+          hasPreviousPage: pageNumber > 1,
+          hasNextPage: pageNumber < totalPages,
+        });
+        setLoading(false);
+        return;
+      }
+
+      const response = await doctorService.getAllAppointments({
+        pageNumber,
         pageSize
         // ✅ Backend handles sorting: InProgress → CheckedIn → Others by date
       });
-      
+
       console.log('═══════════════════════════════════════');
       console.log('📡 ALL Appointments API Response:', response);
       console.log('═══════════════════════════════════════');
-      
+
       if (response.isSuccess && response.data) {
         const { data: appointmentsData, statistics: statsData, ...paginationData } = response.data;
-        
+
         console.log('📋 ALL Appointments Data (NO FILTER):', appointmentsData);
         console.log('📋 Count:', appointmentsData?.length);
         console.log('📊 Statistics from API:', statsData); // ✅ Log statistics
-        
+
         if (!appointmentsData || appointmentsData.length === 0) {
           console.warn('⚠️ API returned EMPTY appointments array!');
           setAppointments([]);
@@ -61,11 +92,11 @@ export const useAllAppointments = () => {
           setLoading(false);
           return;
         }
-        
+
         // ✅ NO DATE FILTER - Map all appointments directly
         const mappedAppointments = appointmentsData.map(mapAppointment);
         console.log('✅ Mapped ALL Appointments:', mappedAppointments);
-        
+
         setAppointments(mappedAppointments);
         setPagination(paginationData);
         setStatistics(statsData || null); // ✅ Set statistics from API
@@ -118,15 +149,15 @@ export const useAllAppointments = () => {
    */
   const formatTime = (time24) => {
     if (!time24) return '--:--';
-    
+
     try {
       // Handle both HH:mm and HH:mm:ss formats
       const parts = time24.split(':');
       const hours = parseInt(parts[0], 10);
       const minutes = parseInt(parts[1], 10);
-      
+
       if (isNaN(hours) || isNaN(minutes)) return '--:--';
-      
+
       const period = hours >= 12 ? 'م' : 'ص';
       const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
       return `${hour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;

@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import doctorService from '@/api/services/doctor.service';
+import { mockAppointments, simulateApiDelay } from '../data/mockData';
+
+// ⚠️ TOGGLE MOCK DATA HERE
+const USE_MOCK_DATA = true;
 
 /**
  * Custom Hook for Today's Appointments
@@ -28,28 +32,43 @@ export const useTodayAppointments = () => {
   const fetchAppointments = async (pageNumber = 1, pageSize = 5) => {
     console.log('🚀 fetchAppointments called with:', { pageNumber, pageSize });
     console.log('📅 Today\'s date:', getTodayDate());
-    
+
     setLoading(true);
     setError(null);
 
     try {
+      if (USE_MOCK_DATA) {
+        console.log('⚠️ USING MOCK DATA FOR TODAY APPOINTMENTS');
+        await simulateApiDelay();
+
+        const todayDate = getTodayDate();
+        const todayAppointments = mockAppointments.filter(apt => apt.appointmentDate === todayDate);
+
+        console.log('✅ Mock Today Appointments:', todayAppointments);
+
+        const mappedAppointments = todayAppointments.map(mapAppointment);
+        setAppointments(mappedAppointments);
+        setLoading(false);
+        return;
+      }
+
       const response = await doctorService.getTodayAppointments({ pageNumber, pageSize });
-      
+
       console.log('═══════════════════════════════════════');
       console.log('📡 RAW API Response:', response);
       console.log('📡 response.isSuccess:', response.isSuccess);
       console.log('📡 response.data exists:', !!response.data);
       console.log('📡 Full Response Structure:', JSON.stringify(response, null, 2));
       console.log('═══════════════════════════════════════');
-      
+
       if (response.isSuccess && response.data) {
         const { data: appointmentsData, ...paginationData } = response.data;
-        
+
         console.log('📋 Appointments Data (ALL from API):', appointmentsData);
         console.log('📋 Is Array?', Array.isArray(appointmentsData));
         console.log('📋 Count (Before Filter):', appointmentsData?.length);
         console.log('📋 Pagination Data:', paginationData);
-        
+
         // ✅ Backend handles pagination correctly - just use the data
         if (!appointmentsData || appointmentsData.length === 0) {
           console.log('ℹ️ No appointments today.');
@@ -57,25 +76,25 @@ export const useTodayAppointments = () => {
           setLoading(false);
           return;
         }
-        
+
         console.log('🔍 First Appointment RAW:', appointmentsData[0]);
         console.log('🔍 First Appointment Date:', appointmentsData[0]?.appointmentDate);
         console.log('🔍 First Appointment Keys:', Object.keys(appointmentsData[0]));
-        
+
         // ✅ Backend already filters by date, no need to filter again
         console.log('═══════════════════════════════════════');
         console.log('✅ Today\'s Appointments from API:', appointmentsData);
         console.log('✅ Today Appointments Count:', appointmentsData.length);
         console.log('═══════════════════════════════════════');
-        
+
         // Map API data to frontend format
         const mappedAppointments = appointmentsData.map(mapAppointment);
         console.log('✅ Mapped Appointments:', mappedAppointments);
-        
+
         if (mappedAppointments.length > 0) {
           console.log('✅ First Mapped Appointment:', mappedAppointments[0]);
         }
-        
+
         setAppointments(mappedAppointments);
       } else {
         console.error('❌ Response validation failed:', {
@@ -103,7 +122,7 @@ export const useTodayAppointments = () => {
    */
   const mapAppointment = (apiData) => {
     console.log('🔄 Mapping appointment:', apiData);
-    
+
     const mapped = {
       id: apiData.id,
       patientId: apiData.patientId,
@@ -119,7 +138,7 @@ export const useTodayAppointments = () => {
       notes: apiData.notes,
       price: apiData.price,
     };
-    
+
     console.log('✅ Mapped to:', mapped);
     return mapped;
   };
@@ -130,6 +149,7 @@ export const useTodayAppointments = () => {
    * @returns {string} Time in 12-hour format with Arabic AM/PM
    */
   const formatTime = (time24) => {
+    if (!time24) return '--:--';
     const [hours, minutes] = time24.split(':');
     const hour = parseInt(hours);
     const period = hour >= 12 ? 'م' : 'ص';

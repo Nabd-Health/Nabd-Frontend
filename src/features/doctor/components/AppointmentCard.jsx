@@ -1,14 +1,14 @@
 import React from 'react';
-import { 
-  FaClock, FaPlay, FaPhone, FaCalendarCheck, 
-  FaStethoscope, FaMapMarkerAlt, FaCheckCircle, FaSpinner, FaDoorOpen,
-  FaCalendarPlus, FaBan
+import {
+  FaClock, FaPhone, FaCalendarCheck,
+  FaStethoscope, FaCheckCircle, FaSpinner, FaDoorOpen,
+  FaCalendarPlus, FaBan, FaPlay, FaArrowRight
 } from 'react-icons/fa';
 import { formatDate } from '@/utils/helpers';
 
 /**
- * AppointmentCard Component - Ultra Modern Design
- * Creative, elegant card for displaying appointment information
+ * AppointmentCard Component - Clean & Professional
+ * Matches the exact design system of TodayAppointments
  */
 const AppointmentCard = ({ appointment, onStartAppointment, loading = false }) => {
   // Get patient initials
@@ -21,236 +21,140 @@ const AppointmentCard = ({ appointment, onStartAppointment, loading = false }) =
     return names[0].charAt(0);
   };
 
-  // Get status styling
-  const getStatusStyle = () => {
-    // إذا كانت الجلسة منتهية - Teal/Emerald
-    if (appointment.apiStatus === 4) {
-      return {
-        bg: appointment.status === 'كشف عام' 
-          ? 'bg-gradient-to-r from-teal-500 to-teal-600'
-          : 'bg-gradient-to-r from-emerald-500 to-emerald-600',
-        text: 'text-white',
-        icon: appointment.status === 'كشف عام' ? FaStethoscope : FaCalendarCheck,
-      };
+  // Status Badge Logic
+  const getStatusBadge = () => {
+    if (appointment.isCancelled) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-bold border border-red-100">
+          <FaBan className="text-[10px]" />
+          ملغي
+        </span>
+      );
     }
-    
-    // إذا كانت الجلسة جارية - Amber/Orange
-    if (appointment.apiStatus === 3) {
-      return {
-        bg: 'bg-gradient-to-r from-amber-500 to-orange-500',
-        text: 'text-white',
-        icon: appointment.status === 'كشف عام' ? FaStethoscope : FaCalendarCheck,
-      };
+
+    if (appointment.apiStatus === 4) { // Completed
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-bold border border-emerald-100">
+          <FaCheckCircle className="text-[10px]" />
+          مكتمل
+        </span>
+      );
     }
-    
-    // الحالة العادية (لم تبدأ) - Slate
-    return {
-      bg: 'bg-gradient-to-r from-slate-400 to-slate-500',
-      text: 'text-white',
-      icon: appointment.status === 'كشف عام' ? FaStethoscope : FaCalendarCheck,
-    };
+
+    if (appointment.apiStatus === 3) { // InProgress
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#FEF3C7] text-[#F59E0B] text-xs font-bold border border-[#F59E0B]/20 animate-pulse">
+          <FaDoorOpen className="text-[10px]" />
+          جاري الآن
+        </span>
+      );
+    }
+
+    // Default (Confirmed/Pending)
+    const isRegular = appointment.status === 'كشف عام';
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${isRegular
+          ? 'bg-[#F0FDFA] text-[#1C8B8F] border-[#1C8B8F]/20'
+          : 'bg-[#FEF3C7] text-[#F59E0B] border-[#F59E0B]/20'
+        }`}>
+        {isRegular ? <FaStethoscope className="text-[10px]" /> : <FaCalendarCheck className="text-[10px]" />}
+        {appointment.status}
+      </span>
+    );
   };
 
-  const statusStyle = getStatusStyle();
-  const StatusIcon = statusStyle.icon;
-
   return (
-    <article className={`group relative rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border overflow-hidden ${
-      appointment.isCancelled 
-        ? 'bg-red-50 border-red-300' 
-        : appointment.apiStatus === 4  // Completed
-        ? 'bg-gradient-to-br from-teal-50 to-emerald-50/50 border-teal-300/60'
-        : appointment.apiStatus === 3  // InProgress
-        ? 'bg-gradient-to-br from-teal-50 to-teal-50/50 border-amber-300/60'
-        : 'bg-gradient-to-br from-slate-50 to-slate-100/50 border-slate-300/60'
-    }`}>
-      {/* Subtle gradient background */}
-      <div className={`absolute inset-0 ${
-        appointment.isCancelled
-          ? 'bg-gradient-to-br from-red-50/50 to-red-100/30'
-          : appointment.apiStatus === 4  // Completed
-          ? 'bg-gradient-to-br from-teal-100/30 to-emerald-50/20'
-          : appointment.apiStatus === 3  // InProgress
-          ? 'bg-gradient-to-br from-amber-100/30 to-orange-50/20'
-          : 'bg-gradient-to-br from-slate-100/30 to-slate-50/20'
-      }`}></div>
-      
-      {/* Left accent bar */}
-      <div className={`absolute right-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-        appointment.isCancelled
-          ? 'bg-gradient-to-b from-red-500 to-red-600'
-          : appointment.apiStatus === 4  // Completed
-          ? 'bg-gradient-to-b from-teal-500 to-emerald-600'
-          : appointment.apiStatus === 3  // InProgress
-          ? 'bg-gradient-to-b from-amber-500 to-orange-500'
-          : 'bg-gradient-to-b from-slate-400 to-slate-500'
-      }`}></div>
-      
-
-      <div className="relative p-5">
-        {/* Header - Time & Status */}
-        <div className="flex items-center justify-between mb-4">
-          {/* Time Badge - Premium */}
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${
-            appointment.isCancelled
-              ? 'bg-gradient-to-r from-red-50 to-red-100 border-red-200/50'
-              : appointment.apiStatus === 4  // Completed
-              ? 'bg-gradient-to-r from-teal-50 to-emerald-50 border-teal-200/50'
-              : appointment.apiStatus === 3  // InProgress
-              ? 'bg-gradient-to-r from-slate-100 to-slate-50 border-amber-300/50'
-              : 'bg-gradient-to-r from-slate-100 to-slate-50 border-slate-300/50'
-          }`}>
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
-              <FaClock className={`text-sm ${
-                appointment.isCancelled 
-                  ? 'text-red-600' 
-                  : appointment.apiStatus === 4 
-                  ? 'text-teal-600'
-                  : appointment.apiStatus === 3
-                  ? 'text-amber-600'
-                  : 'text-slate-500'
-              }`} />
-            </div>
-            <div className="flex flex-col">
-              <span className={`text-xs font-medium leading-none mb-0.5 'text-slate-500'`}>الموعد</span>
-              <span className={`text-base font-bold leading-none 'text-slate-900'`}>{appointment.time}</span>
-            </div>
+    <article className={`group bg-white rounded-2xl p-5 border border-[#E7ECEF] hover:border-[#1C8B8F]/50 hover:shadow-md transition-all duration-300 flex flex-col h-full ${appointment.isCancelled ? 'opacity-75 grayscale-[0.5]' : ''
+      }`}>
+      {/* Header: Time & Status */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2 text-[#1F2E3C]">
+          <div className="w-8 h-8 rounded-lg bg-[#F0FDFA] flex items-center justify-center text-[#1C8B8F]">
+            <FaClock className="text-sm" />
           </div>
+          <span className="text-base font-bold font-mono pt-0.5">{appointment.time}</span>
+        </div>
+        {getStatusBadge()}
+      </div>
 
-          {/* Status Badge */}
-          {appointment.isCancelled ? (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 shadow-sm">
-              <FaBan className="text-white text-xs" />
-              <span className="text-xs font-bold text-white">ملغي</span>
-            </div>
-          ) : (
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${statusStyle.bg} shadow-sm`}>
-              <StatusIcon className="text-white text-xs" />
-              <span className={`text-xs font-bold ${statusStyle.text}`}>{appointment.status}</span>
+      {/* Body: Patient Info */}
+      <div className="flex items-start gap-4 mb-6 flex-1">
+        {/* Avatar */}
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0 transition-colors ${appointment.isCancelled
+            ? 'bg-gray-100 text-gray-400'
+            : 'bg-gradient-to-br from-[#1C8B8F] to-[#14666A] text-white shadow-sm'
+          }`}>
+          {getInitials()}
+        </div>
+
+        <div className="min-w-0 pt-0.5">
+          <h3 className="text-[#1F2E3C] font-bold text-base truncate mb-1 group-hover:text-[#1C8B8F] transition-colors">
+            {appointment.patientName}
+          </h3>
+
+          {appointment.phoneNumber && (
+            <div className="flex items-center gap-1.5 text-[#64748B] mb-2">
+              <FaPhone className="text-[10px] transform flip-x" />
+              <span className="text-xs font-medium dir-ltr font-mono">{appointment.phoneNumber}</span>
             </div>
           )}
-        </div>
 
-        {/* Patient Info */}
-        <div className="flex items-start gap-3 mb-4">
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-white text-lg font-bold ring-1 transition-all duration-300 ${
-              appointment.isCancelled
-                ? 'bg-gradient-to-br from-red-500 to-red-600 ring-red-200 group-hover:ring-red-400'
-                : appointment.apiStatus === 4  // Completed
-                ? appointment.status === 'كشف عام'
-                  ? 'bg-gradient-to-r from-teal-500 to-teal-600 ring-teal-300 group-hover:ring-teal-400'
-                  : 'bg-gradient-to-r from-emerald-500 to-emerald-600 ring-emerald-300 group-hover:ring-emerald-400'
-                : appointment.apiStatus === 3  // InProgress
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 ring-amber-300 group-hover:ring-amber-400'
-                : 'bg-gradient-to-br from-slate-400 to-slate-500 ring-slate-300 group-hover:ring-slate-400'
-            }`}>
-              {getInitials()}
-            </div>
-            {/* Status indicator */}
-            {!appointment.isCancelled && (
-              <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white ${
-                appointment.apiStatus === 4 
-                  ? 'bg-emerald-500' 
-                  : appointment.apiStatus === 3
-                  ? 'bg-orange-500 animate-pulse'
-                  : 'bg-slate-400'
-              }`}>
-                <FaCheckCircle className="text-white text-[8px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-              </div>
+          {/* Meta Tags */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {appointment.appointmentDate && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#64748B] bg-[#F8FAFC] px-2 py-1 rounded border border-[#E7ECEF]">
+                <FaCalendarPlus className="text-[#1C8B8F] text-[10px]" />
+                {formatDate(appointment.appointmentDate, 'DD/MM/YYYY')}
+              </span>
             )}
-          </div>
-
-          {/* Patient Details */}
-          <div className="flex-1 min-w-0">
-            <h3 className={`text-base font-bold truncate mb-1 transition-colors 'text-slate-900 group-hover:text-teal-600'`}>
-              {appointment.patientName}
-            </h3>
-            
-            {/* Phone */}
-            {appointment.phoneNumber && (
-              <div className="flex items-center gap-1.5 mb-2">
-                <FaPhone className={`text-[9px] 'text-slate-400'`} />
-                <span className={`text-xs font-medium direction-ltr 'text-slate-600'`}>{appointment.phoneNumber}</span>
-              </div>
-            )}
-
-            {/* Duration & Appointment Date */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Appointment Date */}
-              {appointment.appointmentDate && (
-                <div className="flex items-center gap-1 px-2 py-1 rounded border bg-slate-50 border-slate-200">
-                  <FaCalendarPlus className="text-[9px] text-slate-500" />
-                  <span className="text-[11px] font-semibold text-slate-700">{formatDate(appointment.appointmentDate, 'DD/MM/YYYY')}</span>
-                </div>
-              )}
-
-              <div className={`flex items-center gap-1 px-2 py-1 rounded border ${
-                appointment.isCancelled
-                  ? 'bg-red-50 border-red-200'
-                  : 'bg-slate-50 border-slate-200'
-              }`}>
-                <FaClock className={`text-[9px] ${
-                  appointment.isCancelled ? 'text-red-500' : 'text-slate-500'
-                }`} />
-                <span className={`text-[11px] font-semibold 'text-slate-700'`}>{appointment.duration} دقيقة</span>
-              </div>
-              
-
-              
-              {/* Session Number if available */}
-              {appointment.sessionNumber && (
-                <div className="flex items-center gap-1 bg-teal-50 px-2 py-1 rounded border border-teal-200">
-                  <span className="text-[11px] font-semibold text-teal-700">جلسة #{appointment.sessionNumber}</span>
-                </div>
-              )}
-            </div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#64748B] bg-[#F8FAFC] px-2 py-1 rounded border border-[#E7ECEF]">
+              <FaClock className="text-[#1C8B8F] text-[10px]" />
+              {appointment.duration} دقيقة
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* Action Button - Full Width */}
+      {/* Footer: Action Button */}
+      <div className="mt-auto pt-4 border-t border-[#E7ECEF]">
         <button
           onClick={() => onStartAppointment?.(appointment)}
           disabled={loading || appointment.isCancelled}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 font-bold text-sm shadow-sm hover:shadow-md group/btn ${
-            loading
-              ? 'bg-slate-400 cursor-not-allowed'
+          className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${loading
+              ? 'bg-[#94A3B8] text-white cursor-not-allowed'
               : appointment.isCancelled
-              ? 'bg-red-400 cursor-not-allowed opacity-60'
-              : appointment.apiStatus === 4  // Completed
-              ? appointment.status === 'كشف عام'
-                ? 'bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700'
-                : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700'
-              : appointment.apiStatus === 3  // InProgress
-              ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
-              : 'bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700'
-          } text-white`}
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                : appointment.apiStatus === 4 // Completed
+                  ? 'bg-[#F0FDFA] text-[#1C8B8F] hover:bg-[#1C8B8F] hover:text-white border border-[#1C8B8F]/20'
+                  : appointment.apiStatus === 3 // InProgress
+                    ? 'bg-[#F59E0B] text-white hover:bg-[#D97706] shadow-sm hover:shadow-md'
+                    : 'bg-[#1C8B8F] text-white hover:bg-[#14666A] shadow-sm hover:shadow-md'
+            }`}
         >
-          <div className="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center">
-            {loading ? (
-              <FaSpinner className="text-white text-xs animate-spin" />
-            ) : (
-              <FaDoorOpen className="text-white text-xs" />
-            )}
-          </div>
+          {loading ? (
+            <FaSpinner className="animate-spin" />
+          ) : appointment.isCancelled ? (
+            <FaBan />
+          ) : appointment.apiStatus === 4 ? (
+            <FaCheckCircle />
+          ) : appointment.apiStatus === 3 ? (
+            <FaArrowRight />
+          ) : (
+            <FaPlay className="text-xs" />
+          )}
+
           <span>
-            {loading 
-              ? 'جاري التحميل...' 
-              : appointment.isCancelled 
-              ? 'موعد ملغي'
-              : appointment.apiStatus === 4  // Completed
-              ? 'الدخول للجلسة'
-              : appointment.apiStatus === 3  // InProgress
-              ? 'متابعة الجلسة'
-              : 'بدء الجلسة'  // Confirmed or other statuses
+            {loading
+              ? 'جاري التحميل...'
+              : appointment.isCancelled
+                ? 'تم الإلغاء'
+                : appointment.apiStatus === 4
+                  ? 'عرض التفاصيل'
+                  : appointment.apiStatus === 3
+                    ? 'متابعة الجلسة'
+                    : 'بدء الجلسة'
             }
           </span>
-          {!loading && (
-            <div className="mr-auto opacity-0 group-hover/btn:opacity-100 transition-opacity">
-              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-            </div>
-          )}
         </button>
       </div>
     </article>
