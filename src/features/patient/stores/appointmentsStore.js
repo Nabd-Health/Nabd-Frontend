@@ -43,29 +43,7 @@ const useAppointmentsStore = create(
           try {
             console.log(' Fetching upcoming appointments...');
 
-            // MOCK DATA
-            const appointments = [
-              {
-                id: 'mock-apt-1',
-                doctorName: 'د. أحمد محمد',
-                doctorProfileImageUrl: null,
-                medicalSpecialtyName: 'الباطنة العامة',
-                scheduledStartTime: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-                scheduledEndTime: new Date(Date.now() + 90000000).toISOString(),
-                status: 1, // Confirmed
-                consultationType: 1, // New
-                consultationFee: 350,
-                sessionDurationMinutes: 30,
-                doctor: {
-                  id: 'd1',
-                  fullName: 'د. أحمد محمد',
-                  profileImageUrl: null,
-                  medicalSpecialtyName: 'الباطنة العامة'
-                }
-              }
-            ];
-
-            // const appointments = await patientService.getUpcomingAppointments();
+            const appointments = await patientService.getUpcomingAppointments();
 
             console.log(' Upcoming appointments:', appointments);
 
@@ -91,84 +69,7 @@ const useAppointmentsStore = create(
           try {
             console.log(' Fetching past appointments...');
 
-            // MOCK DATA
-            const appointments = [
-              {
-                id: 'mock-apt-2',
-                doctorName: 'د. أحمد محمد',
-                doctorProfileImageUrl: null,
-                medicalSpecialtyName: 'الباطنة العامة',
-                scheduledStartTime: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-                scheduledEndTime: new Date(Date.now() - 171000000).toISOString(),
-                status: 4, // Completed
-                consultationType: 1, // New
-                consultationFee: 350,
-                sessionDurationMinutes: 30,
-                doctor: {
-                  id: 'd1',
-                  fullName: 'د. أحمد محمد',
-                  profileImageUrl: null,
-                  medicalSpecialtyName: 'الباطنة العامة'
-                }
-              },
-              {
-                id: 'mock-apt-3',
-                doctorName: 'د. سارة علي',
-                doctorProfileImageUrl: null,
-                medicalSpecialtyName: 'طب الأطفال',
-                scheduledStartTime: new Date(Date.now() - 864000000).toISOString(), // 10 days ago
-                scheduledEndTime: new Date(Date.now() - 860400000).toISOString(),
-                status: 4, // Completed
-                consultationType: 2, // Followup
-                consultationFee: 250,
-                sessionDurationMinutes: 20,
-                doctor: {
-                  id: 'd2',
-                  fullName: 'د. سارة علي',
-                  profileImageUrl: null,
-                  medicalSpecialtyName: 'طب الأطفال'
-                }
-              },
-              {
-                id: 'mock-apt-4',
-                doctorName: 'د. محمد حسن',
-                doctorProfileImageUrl: null,
-                medicalSpecialtyName: 'القلب والأوعية الدموية',
-                scheduledStartTime: new Date(Date.now() - 2592000000).toISOString(), // 30 days ago
-                scheduledEndTime: new Date(Date.now() - 2588400000).toISOString(),
-                status: 4, // Completed
-                consultationType: 1, // New
-                consultationFee: 400,
-                sessionDurationMinutes: 45,
-                doctor: {
-                  id: 'd3',
-                  fullName: 'د. محمد حسن',
-                  profileImageUrl: null,
-                  medicalSpecialtyName: 'القلب والأوعية الدموية'
-                }
-              },
-              {
-                id: 'mock-apt-5',
-                doctorName: 'د. خالد محمود',
-                doctorProfileImageUrl: null,
-                medicalSpecialtyName: 'جراحة العظام',
-                scheduledStartTime: new Date(Date.now() - 432000000).toISOString(), // 5 days ago
-                scheduledEndTime: new Date(Date.now() - 428400000).toISOString(),
-                status: 2, // Cancelled
-                cancellationReason: 'ظروف طارئة',
-                consultationType: 1, // New
-                consultationFee: 300,
-                sessionDurationMinutes: 30,
-                doctor: {
-                  id: 'd4',
-                  fullName: 'د. خالد محمود',
-                  profileImageUrl: null,
-                  medicalSpecialtyName: 'جراحة العظام'
-                }
-              }
-            ];
-
-            // const appointments = await patientService.getPastAppointments();
+            const appointments = await patientService.getPastAppointments();
 
             set({
               pastAppointments: appointments,
