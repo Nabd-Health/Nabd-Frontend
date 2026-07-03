@@ -131,11 +131,12 @@ const AppointmentsPage = () => {
   });
 
   // Calculate stats
+  const allAppointments = [...upcomingAppointments, ...pastAppointments];
   const stats = {
     upcoming: upcomingAppointments.length,
     past: pastAppointments.length,
-    scheduled: upcomingAppointments.filter(a => a.status === 0).length,
-    confirmed: upcomingAppointments.filter(a => a.status === 1).length,
+    scheduled: allAppointments.filter(a => Number(a.status) === 0).length,
+    confirmed: allAppointments.filter(a => Number(a.status) === 1).length,
   };
 
   return (

@@ -79,6 +79,19 @@ const RescheduleAppointmentModal = ({ isOpen, onClose, onConfirm, loading: exter
     };
   }, [isOpen, selectedDate]);
 
+  // Handle body overflow
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   const handleSubmit = () => {
     if (!selectedDate || !selectedTime) {
       return;
@@ -123,7 +136,7 @@ const RescheduleAppointmentModal = ({ isOpen, onClose, onConfirm, loading: exter
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
       <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-5xl w-full my-8 overflow-hidden border border-slate-100">
         {/* Header */}
         <div className="bg-[#0070CD] p-6 text-white">

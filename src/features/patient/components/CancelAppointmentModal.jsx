@@ -27,18 +27,25 @@ const CancelAppointmentModal = ({ isOpen, onClose, onConfirm, loading }) => {
     }
   };
 
-  // Reset state when strictly closed
+  // Handle body scroll and reset state when closed
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
       setCancellationReason('');
       setError('');
     }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
         {/* Header */}
         <div className="bg-[#E11D48] p-6 text-white">
